@@ -14,6 +14,8 @@ export async function createServerClient() {
     const cookieStore = await cookies();
     
     // Create a Supabase client with the user's session from cookies
+    // Using type assertion because cookies option is not in the type definitions
+    // but is supported by the Supabase client for Next.js App Router
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         get(name: string) {
@@ -26,7 +28,7 @@ export async function createServerClient() {
           // Server-side: cookies are handled by Next.js
         },
       },
-    });
+    } as any);
 
     return supabase;
   } catch (error) {
