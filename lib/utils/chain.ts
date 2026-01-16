@@ -24,11 +24,16 @@ export type SummaryOutput = z.infer<typeof summarySchema>;
  */
 export function createSummarizerChain(): Runnable<{ readme: string }, SummaryOutput> {
   // Get OpenAI API key from environment
-  const openAIApiKey = process.env.OPENAI_API_KEY;
+  // Try both with and without NEXT_PUBLIC_ prefix (though it shouldn't need it for server-side)
+  const openAIApiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
   if (!openAIApiKey) {
+    // Debug: Log available environment variables (without exposing sensitive data)
+    const envKeys = Object.keys(process.env).filter(k => 
+      k.includes('OPENAI') || k.includes('API') || k.includes('KEY')
+    );
     console.error("OPENAI_API_KEY not found in environment variables");
-    console.error("Available env vars:", Object.keys(process.env).filter(k => k.includes('OPENAI')));
+    console.error("Available related env vars:", envKeys);
     throw new Error(
       "OPENAI_API_KEY environment variable is required. Please set it in your Vercel environment variables (for production) or .env.local file (for local development)."
     );
