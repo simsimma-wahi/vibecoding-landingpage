@@ -24,8 +24,13 @@ export type SummaryOutput = z.infer<typeof summarySchema>;
  */
 export function createSummarizerChain(): Runnable<{ readme: string }, SummaryOutput> {
   // Get OpenAI API key from environment
-  // Try both with and without NEXT_PUBLIC_ prefix (though it shouldn't need it for server-side)
-  const openAIApiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  // In Next.js/Vercel, server-side env vars are available via process.env
+  // Try multiple possible names in case of typos or different conventions
+  const openAIApiKey = 
+    process.env.OPENAI_API_KEY || 
+    process.env.NEXT_PUBLIC_OPENAI_API_KEY ||
+    process.env.OPENAI_KEY ||
+    process.env.OPENAIKEY;
 
   if (!openAIApiKey) {
     // Debug: Log available environment variables (without exposing sensitive data)
@@ -34,8 +39,11 @@ export function createSummarizerChain(): Runnable<{ readme: string }, SummaryOut
     );
     console.error("OPENAI_API_KEY not found in environment variables");
     console.error("Available related env vars:", envKeys);
+    console.error("NODE_ENV:", process.env.NODE_ENV);
+    console.error("VERCEL:", process.env.VERCEL);
+    console.error("Total env vars:", Object.keys(process.env).length);
     throw new Error(
-      "OPENAI_API_KEY environment variable is required. Please set it in your Vercel environment variables (for production) or .env.local file (for local development)."
+      "OPENAI_API_KEY environment variable is required. Please set it in your Vercel environment variables (for production) or .env.local file (for local development). Visit /api/test-env to debug."
     );
   }
 
