@@ -27,8 +27,10 @@ export function createSummarizerChain(): Runnable<{ readme: string }, SummaryOut
   const openAIApiKey = process.env.OPENAI_API_KEY;
 
   if (!openAIApiKey) {
+    console.error("OPENAI_API_KEY not found in environment variables");
+    console.error("Available env vars:", Object.keys(process.env).filter(k => k.includes('OPENAI')));
     throw new Error(
-      "OPENAI_API_KEY environment variable is required. Please set it in your .env.local file."
+      "OPENAI_API_KEY environment variable is required. Please set it in your Vercel environment variables (for production) or .env.local file (for local development)."
     );
   }
 
