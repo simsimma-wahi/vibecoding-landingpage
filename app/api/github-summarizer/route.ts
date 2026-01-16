@@ -252,7 +252,14 @@ export async function POST(request: NextRequest) {
         const openAIApiKeyOverride = body.openaiApiKey;
         
         console.log("Starting LLM summarization...");
+        console.log("Using API key override:", !!openAIApiKeyOverride);
+        console.log("API key override length:", openAIApiKeyOverride?.length || 0);
         console.log("README length:", readme.length);
+        
+        if (!openAIApiKeyOverride && !process.env.OPENAI_API_KEY) {
+          throw new Error("OpenAI API key is required. Either set OPENAI_API_KEY environment variable in Vercel, or pass 'openaiApiKey' in the request body.");
+        }
+        
         llmSummary = await summarizeReadmeWithLLM(readme, openAIApiKeyOverride);
         console.log("LLM summarization successful:", !!llmSummary);
       } catch (error) {
