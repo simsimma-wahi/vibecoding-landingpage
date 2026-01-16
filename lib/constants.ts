@@ -28,4 +28,6 @@ export const ERROR_MESSAGES = {
   FAILED_TO_DELETE: "Failed to delete API key",
   COPY_FAILED: "Failed to copy to clipboard. Please copy manually.",
   COPY_SUCCESS: "API key copied to clipboard!",
+  API_KEY_REQUIRED: "API key is required",
+  INVALID_API_KEY: "Invalid API key",
 } as const;
