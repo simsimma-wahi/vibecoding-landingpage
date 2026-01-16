@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import { useToast } from "@/lib/hooks/useToast";
 import { useApiKeys } from "@/lib/hooks/useApiKeys";
 import { useKeyVisibility } from "@/lib/hooks/useKeyVisibility";
@@ -14,6 +16,8 @@ import type { ApiKey, ApiKeyFormData } from "@/lib/types";
 const INITIAL_FORM_DATA: ApiKeyFormData = { name: "", type: "dev" };
 
 export default function DashboardsPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const { toasts, showToast } = useToast();
   const {
     apiKeys,
@@ -25,6 +29,12 @@ export default function DashboardsPage() {
     handleDelete,
   } = useApiKeys({ showToast });
   const { visibleKeys, toggleKeyVisibility, showKey } = useKeyVisibility();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
@@ -84,6 +94,21 @@ export default function DashboardsPage() {
   const confirmDelete = (key: ApiKey) => {
     setKeyToDelete(key);
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-black dark:border-white"></div>
+          <p className="mt-4 text-zinc-600 dark:text-zinc-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 relative">

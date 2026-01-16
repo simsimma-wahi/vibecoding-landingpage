@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "./SidebarWrapper";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 interface NavItem {
   name: string;
@@ -54,6 +55,7 @@ const navItems: NavItem[] = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { isOpen, setIsOpen } = useSidebar();
+  const { user, signOut, loading } = useAuth();
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -129,6 +131,72 @@ export default function Sidebar() {
           })}
         </ul>
       </nav>
+
+      {/* User section */}
+      <div className="px-4 pb-4 border-t border-zinc-200 pt-4 mt-auto">
+        {loading ? (
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-zinc-200 animate-pulse"></div>
+            <div className="flex-1">
+              <div className="h-4 bg-zinc-200 rounded w-24 animate-pulse"></div>
+            </div>
+          </div>
+        ) : user ? (
+          <div className="flex items-center gap-3">
+            {/* User avatar with initial */}
+            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-sm font-medium">
+                {user.email?.charAt(0).toUpperCase() || "U"}
+              </span>
+            </div>
+            {/* User name/email */}
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-zinc-900 truncate">
+                {user.user_metadata?.full_name || 
+                 user.user_metadata?.name || 
+                 user.email?.split("@")[0] || 
+                 "User"}
+              </div>
+              {user.email && (
+                <div className="text-xs text-zinc-500 truncate">
+                  {user.email}
+                </div>
+              )}
+            </div>
+            {/* Logout button */}
+            <button
+              onClick={() => signOut()}
+              className="p-2 hover:bg-zinc-100 rounded-lg transition-colors flex-shrink-0"
+              aria-label="Sign out"
+              title="Sign out"
+            >
+              <svg 
+                className="w-5 h-5 text-zinc-600" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" 
+                />
+              </svg>
+            </button>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            className="flex items-center justify-center gap-2 w-full px-3 py-2 text-sm font-medium bg-black text-white rounded-lg hover:bg-zinc-800 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Sign In
+          </Link>
+        )}
+      </div>
     </div>
     </>
   );
