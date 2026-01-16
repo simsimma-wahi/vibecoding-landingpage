@@ -234,10 +234,20 @@ export async function POST(request: NextRequest) {
     if (readme) {
       try {
         // Debug: Check if environment variable is available
-        console.log("Checking OPENAI_API_KEY availability...");
+        console.log("=== ENVIRONMENT VARIABLE DEBUG ===");
         console.log("OPENAI_API_KEY exists:", !!process.env.OPENAI_API_KEY);
         console.log("OPENAI_API_KEY length:", process.env.OPENAI_API_KEY?.length || 0);
         console.log("All env vars with 'OPENAI':", Object.keys(process.env).filter(k => k.includes('OPENAI')));
+        console.log("All env vars (first 20):", Object.keys(process.env).slice(0, 20));
+        console.log("NODE_ENV:", process.env.NODE_ENV);
+        console.log("VERCEL:", process.env.VERCEL);
+        console.log("===================================");
+        
+        // Try to access the key directly and log first few chars for debugging
+        const key = process.env.OPENAI_API_KEY;
+        if (key) {
+          console.log("Key starts with:", key.substring(0, 10) + "...");
+        }
         
         console.log("Starting LLM summarization...");
         console.log("README length:", readme.length);
