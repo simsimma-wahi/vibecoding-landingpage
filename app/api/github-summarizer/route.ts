@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { HTTP_STATUS, ERROR_MESSAGES } from "@/lib/constants";
 import { validateApiKey, extractApiKey } from "@/lib/utils/auth";
+import { summarizeReadmeWithLLM } from "@/lib/utils/langchain-summarizer";
 
 interface GitHubRepo {
   name: string;
@@ -224,12 +225,33 @@ export async function POST(request: NextRequest) {
       fetchReadme(owner, repo),
     ]);
 
-    // Generate summary
-    const summary = generateSummary(repoData, readme);
+    // Generate basic summary
+    const basicSummary = generateSummary(repoData, readme);
+
+    // Generate LLM-powered summary if README exists
+    let llmSummary = null;
+    let llmError = null;
+    if (readme) {
+      try {
+        console.log("Starting LLM summarization...");
+        console.log("README length:", readme.length);
+        llmSummary = await summarizeReadmeWithLLM(readme);
+        console.log("LLM summarization successful:", !!llmSummary);
+      } catch (error) {
+        console.error("Error generating LLM summary:", error);
+        console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
+        llmError = error instanceof Error ? error.message : "Unknown error";
+        // Continue without LLM summary if it fails
+      }
+    } else {
+      console.log("No README content available for LLM summarization");
+    }
 
     return NextResponse.json({
       success: true,
-      summary,
+      summary: basicSummary,
+      llmSummary: llmSummary || null,
+      llmError: llmError || null,
       repository: {
         name: repoData.full_name,
         description: repoData.description,
@@ -243,6 +265,7 @@ export async function POST(request: NextRequest) {
         topics: repoData.topics,
         license: repoData.license?.name || null,
       },
+      readme: readme || null,
     });
   } catch (error: any) {
     console.error("Error summarizing GitHub repository:", error);
