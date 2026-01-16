@@ -242,20 +242,18 @@ export async function POST(request: NextRequest) {
         console.log("OPENAI_API_KEY exists:", !!process.env.OPENAI_API_KEY);
         console.log("OPENAI_API_KEY length:", process.env.OPENAI_API_KEY?.length || 0);
         console.log("All env vars with 'OPENAI':", Object.keys(process.env).filter(k => k.includes('OPENAI')));
-        console.log("All env vars (first 20):", Object.keys(process.env).slice(0, 20));
         console.log("NODE_ENV:", process.env.NODE_ENV);
         console.log("VERCEL:", process.env.VERCEL);
         console.log("===================================");
         
-        // Try to access the key directly and log first few chars for debugging
-        const key = process.env.OPENAI_API_KEY;
-        if (key) {
-          console.log("Key starts with:", key.substring(0, 10) + "...");
-        }
+        // Temporary workaround: Allow OpenAI API key to be passed in request body
+        // This is a workaround for Vercel environment variable issues
+        // In production, you should use environment variables for security
+        const openAIApiKeyOverride = body.openaiApiKey;
         
         console.log("Starting LLM summarization...");
         console.log("README length:", readme.length);
-        llmSummary = await summarizeReadmeWithLLM(readme);
+        llmSummary = await summarizeReadmeWithLLM(readme, openAIApiKeyOverride);
         console.log("LLM summarization successful:", !!llmSummary);
       } catch (error) {
         console.error("Error generating LLM summary:", error);

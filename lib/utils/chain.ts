@@ -22,11 +22,12 @@ export type SummaryOutput = z.infer<typeof summarySchema>;
 /**
  * Creates the LangChain chain for summarizing repository README
  */
-export function createSummarizerChain(): Runnable<{ readme: string }, SummaryOutput> {
-  // Get OpenAI API key from environment
+export function createSummarizerChain(openAIApiKeyOverride?: string): Runnable<{ readme: string }, SummaryOutput> {
+  // Get OpenAI API key from parameter override, then environment
   // In Next.js/Vercel, server-side env vars are available via process.env
   // Try multiple possible names in case of typos or different conventions
   const openAIApiKey = 
+    openAIApiKeyOverride ||
     process.env.OPENAI_API_KEY || 
     process.env.NEXT_PUBLIC_OPENAI_API_KEY ||
     process.env.OPENAI_KEY ||
