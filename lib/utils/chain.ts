@@ -49,10 +49,11 @@ export function createSummarizerChain(openAIApiKeyOverride?: string): Runnable<{
   }
 
   // Initialize the LLM with strict structured output
+  // LangChain ChatOpenAI accepts 'apiKey' or 'openAIApiKey' - using 'apiKey' for compatibility
   const model = new ChatOpenAI({
     modelName: "gpt-4o-mini", // You can change to "gpt-4" or "gpt-3.5-turbo"
     temperature: 0, // Set to 0 for more predictable, deterministic outputs
-    openAIApiKey: openAIApiKey,
+    apiKey: openAIApiKey, // Use 'apiKey' parameter name for LangChain compatibility
   }).withStructuredOutput(summarySchema);
 
   // Create the prompt template with explicit schema instructions
