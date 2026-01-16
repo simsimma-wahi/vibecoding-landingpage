@@ -233,6 +233,12 @@ export async function POST(request: NextRequest) {
     let llmError = null;
     if (readme) {
       try {
+        // Debug: Check if environment variable is available
+        console.log("Checking OPENAI_API_KEY availability...");
+        console.log("OPENAI_API_KEY exists:", !!process.env.OPENAI_API_KEY);
+        console.log("OPENAI_API_KEY length:", process.env.OPENAI_API_KEY?.length || 0);
+        console.log("All env vars with 'OPENAI':", Object.keys(process.env).filter(k => k.includes('OPENAI')));
+        
         console.log("Starting LLM summarization...");
         console.log("README length:", readme.length);
         llmSummary = await summarizeReadmeWithLLM(readme);
