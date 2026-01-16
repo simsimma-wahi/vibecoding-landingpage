@@ -6,12 +6,12 @@ import { createSummarizerChain, summarySchema, type SummaryOutput } from "./chai
  */
 export async function summarizeReadmeWithLLM(
   readmeContent: string,
-  openAIApiKeyOverride?: string
+  openAIApiKey: string
 ): Promise<SummaryOutput> {
   try {
     console.log("Creating summarizer chain...");
-    // Create the chain (with optional API key override for Vercel env var issues)
-    const chain = createSummarizerChain(openAIApiKeyOverride);
+    // Create the chain with the provided API key
+    const chain = createSummarizerChain(openAIApiKey);
     console.log("Chain created successfully");
 
     // Limit README content to avoid token limits (keep first 8000 characters)

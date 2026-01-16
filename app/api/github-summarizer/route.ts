@@ -232,44 +232,21 @@ export async function POST(request: NextRequest) {
     // Generate basic summary
     const basicSummary = generateSummary(repoData, readme);
 
-    // Generate LLM-powered summary if README exists
+    // Generate LLM-powered summary if README exists and OpenAI API key is available
+    // Check environment variable first (from .env.local locally), then request body
     let llmSummary = null;
     let llmError = null;
-    if (readme) {
+    const openAIApiKey = process.env.OPENAI_API_KEY || body.openaiApiKey;
+    
+    if (readme && openAIApiKey) {
       try {
-        // Debug: Check if environment variable is available
-        console.log("=== ENVIRONMENT VARIABLE DEBUG ===");
-        console.log("OPENAI_API_KEY exists:", !!process.env.OPENAI_API_KEY);
-        console.log("OPENAI_API_KEY length:", process.env.OPENAI_API_KEY?.length || 0);
-        console.log("All env vars with 'OPENAI':", Object.keys(process.env).filter(k => k.includes('OPENAI')));
-        console.log("NODE_ENV:", process.env.NODE_ENV);
-        console.log("VERCEL:", process.env.VERCEL);
-        console.log("===================================");
-        
-        // Temporary workaround: Allow OpenAI API key to be passed in request body
-        // This is a workaround for Vercel environment variable issues
-        // In production, you should use environment variables for security
-        const openAIApiKeyOverride = body.openaiApiKey;
-        
-        console.log("Starting LLM summarization...");
-        console.log("Using API key override:", !!openAIApiKeyOverride);
-        console.log("API key override length:", openAIApiKeyOverride?.length || 0);
-        console.log("README length:", readme.length);
-        
-        if (!openAIApiKeyOverride && !process.env.OPENAI_API_KEY) {
-          throw new Error("OpenAI API key is required. Either set OPENAI_API_KEY environment variable in Vercel, or pass 'openaiApiKey' in the request body.");
-        }
-        
-        llmSummary = await summarizeReadmeWithLLM(readme, openAIApiKeyOverride);
-        console.log("LLM summarization successful:", !!llmSummary);
+        llmSummary = await summarizeReadmeWithLLM(readme, openAIApiKey);
       } catch (error) {
         console.error("Error generating LLM summary:", error);
         console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
         llmError = error instanceof Error ? error.message : "Unknown error";
         // Continue without LLM summary if it fails
       }
-    } else {
-      console.log("No README content available for LLM summarization");
     }
 
     return NextResponse.json({
@@ -277,15 +254,6 @@ export async function POST(request: NextRequest) {
       summary: basicSummary,
       llmSummary: llmSummary || null,
       llmError: llmError || null,
-      // Debug info (in development or when explicitly requested via x-debug header or ?debug=true)
-      _debug: (process.env.NODE_ENV === 'development' || includeDebug) ? {
-        openaiKeyExists: !!process.env.OPENAI_API_KEY,
-        openaiKeyLength: process.env.OPENAI_API_KEY?.length || 0,
-        openaiKeyPrefix: process.env.OPENAI_API_KEY?.substring(0, 10) || 'N/A',
-        nodeEnv: process.env.NODE_ENV,
-        vercel: !!process.env.VERCEL,
-        allOpenaiEnvVars: Object.keys(process.env).filter(k => k.includes('OPENAI')),
-      } : undefined,
       repository: {
         name: repoData.full_name,
         description: repoData.description,
