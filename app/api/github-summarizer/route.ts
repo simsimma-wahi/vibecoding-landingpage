@@ -182,6 +182,10 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body = await request.json();
     
+    // Add debug info to response if requested (via query param or header)
+    const includeDebug = request.headers.get('x-debug') === 'true' || 
+                        new URL(request.url).searchParams.get('debug') === 'true';
+    
     // Extract and validate API key
     const apiKey = extractApiKey(request, body);
     if (!apiKey) {
@@ -268,6 +272,15 @@ export async function POST(request: NextRequest) {
       summary: basicSummary,
       llmSummary: llmSummary || null,
       llmError: llmError || null,
+      // Debug info (in development or when explicitly requested via x-debug header or ?debug=true)
+      _debug: (process.env.NODE_ENV === 'development' || includeDebug) ? {
+        openaiKeyExists: !!process.env.OPENAI_API_KEY,
+        openaiKeyLength: process.env.OPENAI_API_KEY?.length || 0,
+        openaiKeyPrefix: process.env.OPENAI_API_KEY?.substring(0, 10) || 'N/A',
+        nodeEnv: process.env.NODE_ENV,
+        vercel: !!process.env.VERCEL,
+        allOpenaiEnvVars: Object.keys(process.env).filter(k => k.includes('OPENAI')),
+      } : undefined,
       repository: {
         name: repoData.full_name,
         description: repoData.description,
